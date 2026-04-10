@@ -28,8 +28,27 @@ const ResultsView: React.FC = () => {
     }
   ];
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(JSON.stringify(dummyData, null, 2));
+  const handleCopy = async () => {
+    const text = JSON.stringify(dummyData, null, 2);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.warn("Clipboard API failed, using fallback.", err);
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+      } catch (e) {
+        console.error("Fallback copy failed", e);
+      }
+      textArea.remove();
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -106,7 +125,7 @@ const ResultsView: React.FC = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-[var(--border-color)]">
-                    {Object.keys(dummyData[0]).map((key) => (
+                    {dummyData.length > 0 && Object.keys(dummyData[0]).map((key) => (
                       <th key={key} className="p-3 text-xs font-medium opacity-70 uppercase tracking-wider">
                         {key}
                       </th>
