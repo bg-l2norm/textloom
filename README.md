@@ -1,6 +1,6 @@
 # TextLoom
 
-This is a WebUI for generating high-quality synthetic data using local or API-based LLMs. It solves the complexity of mock data creation by providing an intuitive, ready-to-use interface—no scripting required.
+This is a WebUI for generating high-quality synthetic data using local or API-based LLMs.
 
 ## Key Features
 
