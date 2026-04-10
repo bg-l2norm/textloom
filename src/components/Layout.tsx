@@ -86,7 +86,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 400, damping: 40 }}
-            className="max-w-6xl mx-auto h-full"
+            className="max-w-6xl mx-auto min-h-full"
           >
             {children}
           </motion.div>
