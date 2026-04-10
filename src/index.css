@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --bg-color: #FAF9F6;
+  --bg-color: #F8F7F3;
   --text-color: #1A1A18;
-  --sidebar-bg: #F0EFEA;
+  --sidebar-bg: #F0EEE9;
   --card-bg: #FFFFFF;
   --border-color: rgba(0, 0, 0, 0.08);
   --grid-color: rgba(0, 0, 0, 0.04);
@@ -13,10 +13,10 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-color: #262624;
+    --bg-color: #1F1E1B;
     --text-color: #E8E4DC;
-    --sidebar-bg: #1E1E1C;
-    --card-bg: #2E2E2A;
+    --sidebar-bg: #181816;
+    --card-bg: #252422;
     --border-color: rgba(255, 255, 255, 0.08);
     --grid-color: rgba(255, 255, 255, 0.04);
     --accent-color: #D97757;
@@ -34,14 +34,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.glass-panel {
+.solid-panel {
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: 0.75rem;
-  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+  /* Strictly solid panels - no shadow/glassmorphism blur by default.
+     Interactive hover states will be handled by Framer Motion. */
 }
 
-.glass-sidebar {
+.solid-sidebar {
   background-color: var(--sidebar-bg);
   border-right: 1px solid var(--border-color);
 }
@@ -75,14 +76,14 @@ body {
 
 .grid-layer-1 {
   background-size: 40px 40px;
-  animation: grid-move-1 20s linear infinite;
-  opacity: 0.8;
+  animation: grid-move-1 40s linear infinite;
+  opacity: 0.5;
 }
 
 .grid-layer-2 {
   background-size: 80px 80px;
-  animation: grid-move-2 30s linear infinite;
-  opacity: 0.4;
+  animation: grid-move-2 60s linear infinite;
+  opacity: 0.2;
 }
 
 @keyframes grid-move-1 {

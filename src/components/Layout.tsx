@@ -31,11 +31,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         initial={{ x: -250 }}
         animate={{ x: 0 }}
         transition={{ type: "spring", stiffness: 400, damping: 40 }}
-        className="w-64 flex flex-col glass-sidebar z-10"
+        className="w-64 flex flex-col solid-sidebar z-10 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.1)]"
       >
         <div className="p-6">
           <div className="flex items-center space-x-3 mb-8">
-            <div className="w-8 h-8 rounded-lg bg-[var(--accent-color)] flex items-center justify-center text-white font-bold shadow-md">
+            <div className="w-8 h-8 rounded-lg bg-[var(--accent-color)] flex items-center justify-center text-white font-bold">
               T
             </div>
             <h1 className="text-xl font-semibold tracking-tight">TextLoom</h1>
@@ -43,18 +43,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
           <nav className="space-y-2">
             {navItems.map((item) => (
-              <button
+              <motion.button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg smooth-transition ${
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg smooth-transition border ${
                   activeTab === item.id
-                    ? 'bg-[var(--accent-color)] text-white shadow-md'
-                    : 'hover:bg-black/5 dark:hover:bg-white/10 text-opacity-80'
+                    ? 'bg-[var(--card-bg)] text-[var(--accent-color)] border-[var(--border-color)] shadow-sm'
+                    : 'border-transparent hover:bg-black/5 dark:hover:bg-white/10 opacity-70 hover:opacity-100'
                 }`}
               >
                 {item.icon}
                 <span className="font-medium text-sm">{item.label}</span>
-              </button>
+              </motion.button>
             ))}
           </nav>
         </div>

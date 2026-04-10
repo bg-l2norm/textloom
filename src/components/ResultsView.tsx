@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Copy, Check, FileJson, Code } from 'lucide-react';
+import SpotlightCard from './SpotlightCard';
 
 const ResultsView: React.FC = () => {
   const [copied, setCopied] = useState(false);
@@ -25,7 +26,7 @@ const ResultsView: React.FC = () => {
       transition={{ delay: 0.4, type: "spring", stiffness: 400, damping: 40 }}
       className="mt-8"
     >
-      <div className="glass-panel p-6 rounded-2xl">
+      <SpotlightCard className="p-6 rounded-2xl">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-2">
             <FileJson size={18} className="text-[var(--accent-color)]" />
@@ -99,7 +100,11 @@ const ResultsView: React.FC = () => {
                 </thead>
                 <tbody>
                   {dummyData.map((row, i) => (
-                    <tr key={i} className="border-b border-[var(--border-color)] last:border-0 hover:bg-black/5 dark:hover:bg-white/5 smooth-transition">
+                    <motion.tr
+                      key={i}
+                      whileHover={{ backgroundColor: "rgba(0,0,0,0.02)" }}
+                      className="border-b border-[var(--border-color)] last:border-0 dark:hover:bg-white/5 smooth-transition"
+                    >
                       {Object.values(row).map((val: unknown, j) => (
                         <td key={j} className="p-3 text-sm">
                           {typeof val === 'string' && (val === 'Active' || val === 'Inactive') ? (
@@ -109,14 +114,14 @@ const ResultsView: React.FC = () => {
                           ) : val as React.ReactNode}
                         </td>
                       ))}
-                    </tr>
+                    </motion.tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
         </div>
-      </div>
+      </SpotlightCard>
     </motion.div>
   );
 };

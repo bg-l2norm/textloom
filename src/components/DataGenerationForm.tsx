@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sliders, Cpu, Zap } from 'lucide-react';
+import SpotlightCard from './SpotlightCard';
 
 const DataGenerationForm: React.FC = () => {
   const [modelType, setModelType] = useState<'local' | 'api'>('local');
@@ -14,8 +15,8 @@ const DataGenerationForm: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, type: "spring", stiffness: 400, damping: 40 }}
-          className="glass-panel p-6 rounded-2xl"
         >
+          <SpotlightCard className="p-6 rounded-2xl">
           <div className="mb-4">
             <label className="block text-sm font-medium opacity-80 mb-2">Prompt Instruction</label>
             <textarea
@@ -33,6 +34,7 @@ const DataGenerationForm: React.FC = () => {
               ></textarea>
             </div>
           </div>
+          </SpotlightCard>
         </motion.div>
 
         <motion.div
@@ -41,10 +43,14 @@ const DataGenerationForm: React.FC = () => {
           transition={{ delay: 0.2, type: "spring", stiffness: 400, damping: 40 }}
           className="flex justify-end"
         >
-          <button className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white font-medium shadow-lg shadow-[var(--accent-color)]/30 smooth-transition transform hover:scale-105 active:scale-95">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white font-medium shadow-lg shadow-[var(--accent-color)]/30 smooth-transition"
+          >
             <Zap size={18} className="fill-current" />
             <span>Generate Data</span>
-          </button>
+          </motion.button>
         </motion.div>
       </div>
 
@@ -55,7 +61,7 @@ const DataGenerationForm: React.FC = () => {
         transition={{ delay: 0.3, type: "spring", stiffness: 400, damping: 40 }}
         className="space-y-6"
       >
-        <div className="glass-panel p-6 rounded-2xl">
+        <SpotlightCard className="p-6 rounded-2xl">
           <div className="flex items-center space-x-2 mb-6">
             <Cpu size={18} className="text-[var(--accent-color)]" />
             <h3 className="font-semibold">Model Configuration</h3>
@@ -139,7 +145,7 @@ const DataGenerationForm: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </SpotlightCard>
       </motion.div>
     </div>
   );
