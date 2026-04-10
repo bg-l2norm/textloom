@@ -4,15 +4,15 @@ import { Layers, Settings, Database, Activity } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
+  activeTab: string;
+  onTabChange: (id: string) => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const [activeTab, setActiveTab] = React.useState('generate');
-
+const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => {
   const navItems = [
     { id: 'generate', icon: <Layers size={20} />, label: 'Generate Data' },
     { id: 'datasets', icon: <Database size={20} />, label: 'Datasets' },
-    { id: 'activity', icon: <Activity size={20} />, label: 'Activity' },
+    { id: 'usage', icon: <Activity size={20} />, label: 'Usage Insights' },
     { id: 'settings', icon: <Settings size={20} />, label: 'Settings' },
   ];
 
@@ -45,7 +45,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {navItems.map((item) => (
               <motion.button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => onTabChange(item.id)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}

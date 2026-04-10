@@ -417,7 +417,7 @@ const DataGenerationForm: React.FC = () => {
                 </span>
                 <select
                   value={memoryStrategy}
-                  onChange={(e) => setMemoryStrategy(e.target.value as any)}
+                  onChange={(e) => setMemoryStrategy(e.target.value as 'sliding' | 'summarize' | 'vector')}
                   className="bg-black/5 dark:bg-white/5 border border-[var(--border-color)] text-xs rounded-lg p-1 outline-none focus:ring-1 focus:ring-[var(--accent-color)]"
                 >
                   <option value="sliding">Sliding Window (Last 10)</option>
