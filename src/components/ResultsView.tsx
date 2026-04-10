@@ -8,9 +8,24 @@ const ResultsView: React.FC = () => {
   const [viewMode, setViewMode] = useState<'raw' | 'table'>('raw');
 
   const dummyData = [
-    { id: 1, name: "Elena Rostova", role: "Data Scientist", status: "Active" },
-    { id: 2, name: "Marcus Chen", role: "Product Manager", status: "Inactive" },
-    { id: 3, name: "Sarah Jenkins", role: "UX Designer", status: "Active" }
+    {
+      id: 1,
+      input: "How do I implement a custom hook for window size in React?",
+      discovered_steps: "1. Define state for width and height. 2. Create effect to add resize listener. 3. Update state on resize. 4. Cleanup listener.",
+      output: "```javascript\nimport { useState, useEffect } from 'react';\n\nfunction useWindowSize() {\n  const [size, setSize] = useState([window.innerWidth, window.innerHeight]);\n  // ...\n}\n```"
+    },
+    {
+      id: 2,
+      input: "Explain the difference between useMemo and useCallback.",
+      discovered_steps: "1. Define useMemo as caching a value. 2. Define useCallback as caching a function. 3. Provide an example of each. 4. Explain when to use them.",
+      output: "useMemo is used to memoize the result of a calculation. It returns a memoized value.\n\nuseCallback is used to memoize a function itself. It returns a memoized callback."
+    },
+    {
+      id: 3,
+      input: "What are React Server Components?",
+      discovered_steps: "1. Define what they are (run only on server). 2. Contrast with Client Components. 3. List benefits (smaller bundles, direct DB access).",
+      output: "React Server Components allow you to write UI that can be rendered and optionally cached on the server. Unlike Client Components, they never send JavaScript to the browser."
+    }
   ];
 
   const handleCopy = () => {
@@ -105,13 +120,15 @@ const ResultsView: React.FC = () => {
                       whileHover={{ backgroundColor: "rgba(0,0,0,0.02)" }}
                       className="border-b border-[var(--border-color)] last:border-0 dark:hover:bg-white/5 smooth-transition"
                     >
-                      {Object.values(row).map((val: unknown, j) => (
-                        <td key={j} className="p-3 text-sm">
-                          {typeof val === 'string' && (val === 'Active' || val === 'Inactive') ? (
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${val === 'Active' ? 'bg-green-500/20 text-green-600 dark:text-green-400' : 'bg-red-500/20 text-red-600 dark:text-red-400'}`}>
-                              {val}
-                            </span>
-                          ) : val as React.ReactNode}
+                      {Object.entries(row).map(([key, val], j) => (
+                        <td key={j} className={`p-3 text-sm ${key !== 'id' ? 'min-w-[200px] max-w-xs align-top' : ''}`}>
+                          {key !== 'id' ? (
+                            <div className="line-clamp-3 hover:line-clamp-none smooth-transition text-xs opacity-80 bg-black/5 dark:bg-white/5 p-2 rounded">
+                              {val as React.ReactNode}
+                            </div>
+                          ) : (
+                            <span className="font-mono text-xs opacity-50">{val as React.ReactNode}</span>
+                          )}
                         </td>
                       ))}
                     </motion.tr>
