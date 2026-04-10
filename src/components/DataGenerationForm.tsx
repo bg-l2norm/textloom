@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sliders, Cpu, Zap, GitBranch, ShieldCheck, RefreshCw, Settings, Database } from 'lucide-react';
+import { Sliders, Cpu, Zap, GitBranch, ShieldCheck, RefreshCw, Settings, Database, Cloud, Brain, Users, Network, Save } from 'lucide-react';
 import SpotlightCard from './SpotlightCard';
 
 const DataGenerationForm: React.FC = () => {
@@ -14,8 +14,75 @@ const DataGenerationForm: React.FC = () => {
   const [diversityLoss, setDiversityLoss] = useState(true);
   const [closedFeedback, setClosedFeedback] = useState(true);
 
+  // New state variables for HF integration and roles/memory
+  const [hfDatasetUrl, setHfDatasetUrl] = useState('');
+  const [isDatasetLinked, setIsDatasetLinked] = useState(false);
+  const [datasetScenario, setDatasetScenario] = useState('Read columns: input, output. Generate 100 new synthetic variations maintaining the same tone but switching to a sci-fi context. Reverse prompt from output if input is missing.');
+  const [orchestratorMemory, setOrchestratorMemory] = useState('- Current objective: Expanding math reasoning dataset.\n- Rule: Avoid repetitive phrasing in outputs.\n- Node mapping: Column \'question\' -> Node [Student Gen]\n- Auto-correction active: If output fails validation, retry with temperature 0.2');
+
+  const [isLoadingDataset, setIsLoadingDataset] = useState(false);
+  const [datasetError, setDatasetError] = useState('');
+
+  const linkDataset = async () => {
+    if (!hfDatasetUrl.trim()) return;
+
+    if (isDatasetLinked) {
+      // Unlink
+      setIsDatasetLinked(false);
+      return;
+    }
+
+    setIsLoadingDataset(true);
+    setDatasetError('');
+
+    try {
+      // Parse out the dataset name, handling simple cases
+      // E.g., 'HuggingFaceH4/instruction-dataset' or 'rotten_tomatoes'
+      const datasetName = hfDatasetUrl.trim();
+
+      // Attempt to fetch schema/columns
+      const res = await fetch(`https://datasets-server.huggingface.co/info?dataset=${encodeURIComponent(datasetName)}`);
+
+      if (!res.ok) {
+        throw new Error(`Failed to fetch dataset info (Status: ${res.status})`);
+      }
+
+      const data = await res.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      // Extract columns
+      const datasetInfo = data.dataset_info;
+      if (!datasetInfo) throw new Error("No dataset info returned");
+
+      // Get the first split/config
+      const configKey = Object.keys(datasetInfo)[0];
+      if (!configKey) throw new Error("No configs found in dataset");
+
+      const features = datasetInfo[configKey].features;
+      if (!features) throw new Error("No features found in dataset config");
+
+      const columns = Object.keys(features);
+
+      // Update the scenario text area with a smart default based on the columns
+      setDatasetScenario(`Discovered columns: ${columns.join(', ')}.\n\nInstructions:\n1. Read existing rows.\n2. Using the available columns, generate 100 new synthetic variations.\n3. Reverse prompt from output if input is missing.`);
+      setIsDatasetLinked(true);
+    } catch (err: unknown) {
+      console.error("Dataset linking error:", err);
+      if (err instanceof Error) {
+        setDatasetError(err.message || 'Failed to link dataset');
+      } else {
+        setDatasetError('Failed to link dataset');
+      }
+    } finally {
+      setIsLoadingDataset(false);
+    }
+  };
+
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 h-full">
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
       {/* Main Form Area */}
       <div className="xl:col-span-2 space-y-6">
         <motion.div
@@ -41,6 +108,67 @@ const DataGenerationForm: React.FC = () => {
               ></textarea>
             </div>
           </div>
+          </SpotlightCard>
+        </motion.div>
+
+        {/* Source Dataset Integration Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12, type: "spring", stiffness: 400, damping: 40 }}
+        >
+          <SpotlightCard className="p-6 rounded-2xl">
+            <div className="flex items-center space-x-2 mb-4">
+              <Cloud size={18} className="text-[var(--accent-color)]" />
+              <h3 className="font-semibold">HuggingFace Dataset Integration</h3>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium opacity-80 mb-2">Dataset ID or URL</label>
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={hfDatasetUrl}
+                    onChange={(e) => setHfDatasetUrl(e.target.value)}
+                    placeholder="e.g., cornell-movie-review-data/rotten_tomatoes"
+                    className="flex-1 p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] smooth-transition text-sm"
+                  />
+                  <button
+                    onClick={linkDataset}
+                    disabled={isLoadingDataset}
+                    className={`px-4 py-2 rounded-xl text-sm font-medium smooth-transition ${isDatasetLinked ? 'bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/30' : 'bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20'} ${isLoadingDataset ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {isLoadingDataset ? 'Linking...' : isDatasetLinked ? 'Linked' : 'Link Dataset'}
+                  </button>
+                </div>
+                {datasetError && (
+                  <p className="text-red-500 text-xs mt-2">{datasetError}</p>
+                )}
+              </div>
+
+              {isDatasetLinked && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="pt-2"
+                >
+                  <label className="flex items-center justify-between text-sm font-medium opacity-80 mb-2">
+                    <span>Soft-Coded Scenario & Column Mapping</span>
+                    <span className="text-[10px] uppercase tracking-wider bg-black/10 dark:bg-white/10 px-2 py-0.5 rounded-full">LLM Editable</span>
+                  </label>
+                  <p className="text-xs opacity-60 mb-2 leading-relaxed">
+                    Instruct the orchestrator on how to use the columns. This area is soft-coded; the AI can dynamically update these rules if it encounters errors or needs to adapt (e.g., reverse generation).
+                  </p>
+                  <textarea
+                    value={datasetScenario}
+                    onChange={(e) => setDatasetScenario(e.target.value)}
+                    className="w-full h-32 p-4 rounded-xl bg-[var(--bg-color)] border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] smooth-transition resize-y text-sm font-mono opacity-90"
+                    placeholder="E.g., Read 'input' and 'output' columns. If 'output' exists but 'input' is missing, run reverse-prompting agent..."
+                  ></textarea>
+                </motion.div>
+              )}
+            </div>
           </SpotlightCard>
         </motion.div>
 
@@ -183,6 +311,62 @@ const DataGenerationForm: React.FC = () => {
                   />
                 </div>
               </div>
+            </div>
+          </div>
+        </SpotlightCard>
+
+        <SpotlightCard className="p-6 rounded-2xl mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2">
+              <Network size={18} className="text-[var(--accent-color)]" />
+              <h3 className="font-semibold">Soft-Coded Roles & Memory</h3>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-[var(--border-color)]">
+              <h4 className="text-xs font-semibold opacity-70 mb-3 uppercase tracking-wider">Dynamic Hierarchy</h4>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2 text-sm">
+                  <Brain size={14} className="text-[var(--accent-color)]" />
+                  <span className="font-medium">Orchestrator</span>
+                  <span className="text-[10px] opacity-60">(Reads rules, routes tasks)</span>
+                </div>
+                <div className="pl-5 border-l border-black/10 dark:border-white/10 space-y-2 relative">
+                  <div className="absolute top-0 -left-[1px] w-[1px] h-3 bg-black/20 dark:bg-white/20"></div>
+                  <div className="flex items-center space-x-2 text-sm">
+                    <ShieldCheck size={14} className="text-green-500" />
+                    <span>Curator Node</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-sm">
+                    <Users size={14} className="text-blue-500" />
+                    <span>Student / Gen Node</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium opacity-80">Orchestrator Memory</label>
+                <div className="flex space-x-1">
+                  <button className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded smooth-transition" title="Save Memory State">
+                    <Save size={12} className="opacity-70" />
+                  </button>
+                  <button className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded smooth-transition" title="Reset Memory">
+                    <RefreshCw size={12} className="opacity-70" />
+                  </button>
+                </div>
+              </div>
+              <textarea
+                value={orchestratorMemory}
+                onChange={(e) => setOrchestratorMemory(e.target.value)}
+                className="w-full h-32 p-3 rounded-xl bg-[var(--bg-color)] border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] smooth-transition resize-y text-xs font-mono opacity-90 leading-relaxed"
+                placeholder="Memory area for the Orchestrator to store rules, state, and corrections..."
+              ></textarea>
+              <p className="text-[10px] opacity-50 mt-1">
+                This context is fluid and persists across generation batches. The LLM can edit this to self-correct.
+              </p>
             </div>
           </div>
         </SpotlightCard>
