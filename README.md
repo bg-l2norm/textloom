@@ -2,6 +2,18 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+## App Showcase
+
+Here is a visual demonstration of the app:
+
+**Screenshot**
+![Screenshot](./public/screenshot.png)
+
+**Demo Video**
+https://github.com/user-attachments/assets/demo.webm <!-- We can update this path based on typical repo conventions, but providing local paths for now as a reference or using <video src="./public/demo.webm" controls="controls" muted="muted"></video> -->
+
+<video src="./public/demo.webm" width="600" controls="controls" muted="muted" autoplay="autoplay" loop="loop"></video>
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)

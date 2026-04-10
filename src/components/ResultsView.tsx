@@ -102,13 +102,13 @@ const ResultsView: React.FC = () => {
                 <tbody>
                   {dummyData.map((row, i) => (
                     <tr key={i} className="border-b border-[var(--border-color)] last:border-0 hover:bg-black/5 dark:hover:bg-white/5 smooth-transition">
-                      {Object.values(row).map((val: any, j) => (
+                      {Object.values(row).map((val: unknown, j) => (
                         <td key={j} className="p-3 text-sm">
                           {typeof val === 'string' && (val === 'Active' || val === 'Inactive') ? (
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${val === 'Active' ? 'bg-green-500/20 text-green-600 dark:text-green-400' : 'bg-red-500/20 text-red-600 dark:text-red-400'}`}>
                               {val}
                             </span>
-                          ) : val}
+                          ) : val as React.ReactNode}
                         </td>
                       ))}
                     </tr>
