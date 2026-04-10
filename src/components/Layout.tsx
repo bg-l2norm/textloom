@@ -30,12 +30,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <motion.aside
         initial={{ x: -250 }}
         animate={{ x: 0 }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        transition={{ type: "spring", stiffness: 400, damping: 40 }}
         className="w-64 flex flex-col glass-sidebar z-10"
       >
         <div className="p-6">
           <div className="flex items-center space-x-3 mb-8">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-lg">
+            <div className="w-8 h-8 rounded-lg bg-[var(--accent-color)] flex items-center justify-center text-white font-bold shadow-md">
               T
             </div>
             <h1 className="text-xl font-semibold tracking-tight">TextLoom</h1>
@@ -68,9 +68,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </motion.aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col relative overflow-hidden bg-black/5 dark:bg-white/5 backdrop-blur-3xl">
+      <main className="flex-1 flex flex-col relative overflow-hidden">
         {/* Top Header */}
-        <header className="h-16 flex items-center px-8 glass-panel border-t-0 border-l-0 border-r-0 z-10">
+        <header className="h-16 flex items-center px-8 border-b border-[var(--border-color)] bg-[var(--bg-color)] z-10">
           <h2 className="text-lg font-medium opacity-80 capitalize">
             {navItems.find(i => i.id === activeTab)?.label}
           </h2>
@@ -82,7 +82,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             key={activeTab}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ type: "spring", stiffness: 400, damping: 40 }}
             className="max-w-6xl mx-auto h-full"
           >
             {children}

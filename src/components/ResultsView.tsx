@@ -22,7 +22,7 @@ const ResultsView: React.FC = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.4 }}
+      transition={{ delay: 0.4, type: "spring", stiffness: 400, damping: 40 }}
       className="mt-8"
     >
       <div className="glass-panel p-6 rounded-2xl">
@@ -81,8 +81,6 @@ const ResultsView: React.FC = () => {
         </div>
 
         <div className="relative overflow-hidden rounded-xl bg-black/5 dark:bg-white/5 border border-[var(--border-color)] group">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-
           {viewMode === 'raw' ? (
             <pre className="p-4 text-sm font-mono overflow-x-auto text-[var(--accent-color)] dark:text-[#61dafb]">
               <code>{JSON.stringify(dummyData, null, 2)}</code>

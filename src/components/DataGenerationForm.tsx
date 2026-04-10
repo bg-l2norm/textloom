@@ -13,7 +13,7 @@ const DataGenerationForm: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.1, type: "spring", stiffness: 400, damping: 40 }}
           className="glass-panel p-6 rounded-2xl"
         >
           <div className="mb-4">
@@ -27,7 +27,6 @@ const DataGenerationForm: React.FC = () => {
           <div>
             <label className="block text-sm font-medium opacity-80 mb-2">JSON Schema (Optional)</label>
             <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--accent-color)] to-purple-500 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
               <textarea
                 className="relative w-full h-48 p-4 rounded-xl bg-black/5 dark:bg-white/5 border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] font-mono text-sm smooth-transition resize-none"
                 placeholder={`{\n  "type": "object",\n  "properties": {\n    "name": { "type": "string" }\n  }\n}`}
@@ -39,7 +38,7 @@ const DataGenerationForm: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.2, type: "spring", stiffness: 400, damping: 40 }}
           className="flex justify-end"
         >
           <button className="flex items-center space-x-2 px-8 py-3 rounded-xl bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white font-medium shadow-lg shadow-[var(--accent-color)]/30 smooth-transition transform hover:scale-105 active:scale-95">
@@ -53,7 +52,7 @@ const DataGenerationForm: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.3 }}
+        transition={{ delay: 0.3, type: "spring", stiffness: 400, damping: 40 }}
         className="space-y-6"
       >
         <div className="glass-panel p-6 rounded-2xl">
