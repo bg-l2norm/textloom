@@ -4,8 +4,6 @@ This is a WebUI for generating high-quality synthetic data using local or API-ba
 
 ## App Showcase
 
-Here is a visual demonstration of the app:
-
 **Main UI**
 ![Screenshot](./public/screenshot.png)
 
