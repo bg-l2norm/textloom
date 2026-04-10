@@ -6,6 +6,7 @@
   --sidebar-bg: rgba(255, 255, 255, 0.7);
   --card-bg: rgba(255, 255, 255, 0.8);
   --border-color: rgba(0, 0, 0, 0.1);
+  --grid-color: rgba(0, 0, 0, 0.05);
   --accent-color: #0066cc;
   --accent-hover: #0055b3;
 }
@@ -17,6 +18,7 @@
     --sidebar-bg: rgba(30, 30, 30, 0.7);
     --card-bg: rgba(40, 40, 40, 0.8);
     --border-color: rgba(255, 255, 255, 0.1);
+    --grid-color: rgba(255, 255, 255, 0.05);
     --accent-color: #2997ff;
     --accent-hover: #147ce5;
   }
@@ -49,4 +51,49 @@ body {
 
 .smooth-transition {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.grid-background-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background-color: var(--bg-color);
+  z-index: 0;
+}
+
+.grid-background-mask {
+  position: absolute;
+  inset: 0;
+  mask-image: radial-gradient(circle at 50% 50%, black 20%, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, black 20%, transparent 80%);
+}
+
+.grid-layer {
+  position: absolute;
+  inset: -10% -10%;
+  background-image:
+    linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+}
+
+.grid-layer-1 {
+  background-size: 40px 40px;
+  animation: grid-move-1 20s linear infinite;
+  opacity: 0.8;
+}
+
+.grid-layer-2 {
+  background-size: 80px 80px;
+  animation: grid-move-2 30s linear infinite;
+  opacity: 0.4;
+}
+
+@keyframes grid-move-1 {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(40px, 40px); }
+}
+
+@keyframes grid-move-2 {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-80px, 80px); }
 }

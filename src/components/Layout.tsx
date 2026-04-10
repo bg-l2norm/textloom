@@ -17,7 +17,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   ];
 
   return (
-    <div className="flex h-screen overflow-hidden text-[var(--text-color)] bg-[url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center">
+    <div className="flex h-screen overflow-hidden text-[var(--text-color)] bg-[var(--bg-color)] relative">
+      {/* Animated Grid Background */}
+      <div className="grid-background-container">
+        <div className="grid-background-mask">
+          <div className="grid-layer grid-layer-1"></div>
+          <div className="grid-layer grid-layer-2"></div>
+        </div>
+      </div>
+
       {/* Sidebar */}
       <motion.aside
         initial={{ x: -250 }}
