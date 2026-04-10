@@ -24,11 +24,15 @@ const DataGenerationForm: React.FC = () => {
   const [datasetScenario, setDatasetScenario] = useState('Read columns: input, output. Generate 100 new synthetic variations maintaining the same tone but switching to a sci-fi context. Reverse prompt from output if input is missing.');
 
   const [activeRole, setActiveRole] = useState<'orchestrator' | 'curator' | 'student'>('orchestrator');
-  const [roleMemories, setRoleMemories] = useState({
+  const [memoryStrategy, setMemoryStrategy] = useState<'sliding' | 'summarize' | 'vector'>('sliding');
+
+  const defaultMemories = {
     orchestrator: '- Current objective: Expanding math reasoning dataset.\n- Rule: Avoid repetitive phrasing in outputs.\n- Node mapping: Column \'question\' -> Node [Student Gen]\n- Auto-correction active: If output fails validation, retry with temperature 0.2',
-    curator: '',
-    student: ''
-  });
+    curator: '- Role: Validate generated rows against the schema.\n- Current Rule: Ensure tone is strictly sci-fi.\n- Action on fail: Pass back to Student with feedback.',
+    student: '- Role: Generate synthetic variations based on Orchestrator rules.\n- Constraint: Output must match Curator validation expectations.'
+  };
+
+  const [roleMemories, setRoleMemories] = useState(defaultMemories);
 
   const [isLoadingDataset, setIsLoadingDataset] = useState(false);
   const [datasetError, setDatasetError] = useState('');
@@ -198,19 +202,26 @@ const DataGenerationForm: React.FC = () => {
             </div>
 
             <div>
-              <div className="flex justify-between text-sm mb-2">
+              <div className="flex justify-between items-center text-sm mb-2">
                 <span className="opacity-80">Target Row Count</span>
-                <span className="font-mono font-medium">{rowCount.toLocaleString()}</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="50000"
+                  value={rowCount}
+                  onChange={(e) => setRowCount(parseInt(e.target.value) || 1)}
+                  className="font-mono font-medium bg-black/5 dark:bg-white/5 border border-[var(--border-color)] rounded px-2 py-0.5 w-24 text-right focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)]"
+                />
               </div>
               <input
                 type="range"
-                min="100" max="10000" step="100"
+                min="10" max="10000" step="10"
                 value={rowCount}
                 onChange={(e) => setRowCount(parseInt(e.target.value))}
                 className="w-full h-1.5 bg-black/10 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--accent-color)]"
               />
               <div className="flex justify-between text-xs opacity-50 mt-1">
-                <span>100</span>
+                <span>10</span>
                 <span>10,000+</span>
               </div>
             </div>
@@ -378,9 +389,7 @@ const DataGenerationForm: React.FC = () => {
                   <button
                     onClick={() => setRoleMemories(prev => ({
                       ...prev,
-                      [activeRole]: activeRole === 'orchestrator'
-                        ? '- Current objective: Expanding math reasoning dataset.\n- Rule: Avoid repetitive phrasing in outputs.\n- Node mapping: Column \'question\' -> Node [Student Gen]\n- Auto-correction active: If output fails validation, retry with temperature 0.2'
-                        : ''
+                      [activeRole]: defaultMemories[activeRole]
                     }))}
                     className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded smooth-transition"
                     title="Reset Memory"
@@ -395,9 +404,27 @@ const DataGenerationForm: React.FC = () => {
                 className="w-full h-32 p-3 rounded-xl bg-[var(--bg-color)] border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] smooth-transition resize-y text-xs font-mono opacity-90 leading-relaxed"
                 placeholder={`Memory area for the ${activeRole.charAt(0).toUpperCase() + activeRole.slice(1)} to store rules, state, and corrections...`}
               ></textarea>
-              <p className="text-[10px] opacity-50 mt-1">
-                This context is fluid and persists across generation batches. The LLM can edit this to self-correct.
-              </p>
+
+              <div className="flex justify-end mt-1 mb-2">
+                <span className={`text-[10px] font-mono ${(roleMemories[activeRole].length / 4) > 2000 ? 'text-red-500' : 'opacity-50'}`}>
+                  ~{Math.ceil(roleMemories[activeRole].length / 4)} tokens
+                </span>
+              </div>
+
+              <div className="mt-2 flex items-center justify-between border-t border-[var(--border-color)] pt-2">
+                <span className="text-[10px] opacity-60 flex-1">
+                  Memory Management Strategy
+                </span>
+                <select
+                  value={memoryStrategy}
+                  onChange={(e) => setMemoryStrategy(e.target.value as any)}
+                  className="bg-black/5 dark:bg-white/5 border border-[var(--border-color)] text-xs rounded-lg p-1 outline-none focus:ring-1 focus:ring-[var(--accent-color)]"
+                >
+                  <option value="sliding">Sliding Window (Last 10)</option>
+                  <option value="summarize">Auto-Summarize (&lt; 2k tkns)</option>
+                  <option value="vector">Vector Retrieval</option>
+                </select>
+              </div>
             </div>
           </div>
         </SpotlightCard>

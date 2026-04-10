@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Copy, Check, FileJson, Code } from 'lucide-react';
+import { Copy, Check, FileJson, Code, Download } from 'lucide-react';
 import SpotlightCard from './SpotlightCard';
 
 const ResultsView: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [viewMode, setViewMode] = useState<'raw' | 'table'>('raw');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
 
   const dummyData = [
     {
@@ -27,6 +29,19 @@ const ResultsView: React.FC = () => {
       output: "React Server Components allow you to write UI that can be rendered and optionally cached on the server. Unlike Client Components, they never send JavaScript to the browser."
     }
   ];
+
+  const handleDownload = () => {
+    const text = JSON.stringify(dummyData, null, 2);
+    const blob = new Blob([text], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'dataset.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const handleCopy = async () => {
     const text = JSON.stringify(dummyData, null, 2);
@@ -52,6 +67,10 @@ const ResultsView: React.FC = () => {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const totalPages = Math.ceil(dummyData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedData = dummyData.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <motion.div
@@ -86,6 +105,15 @@ const ResultsView: React.FC = () => {
             </div>
 
             <button
+              onClick={handleDownload}
+              className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-black/5 dark:bg-white/5 border border-[var(--border-color)] hover:bg-black/10 dark:hover:bg-white/10 smooth-transition"
+              title="Download full dataset"
+            >
+              <Download size={14} />
+              <span className="text-sm font-medium">Download</span>
+            </button>
+
+            <button
               onClick={handleCopy}
               className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-black/5 dark:bg-white/5 border border-[var(--border-color)] hover:bg-[var(--accent-color)] hover:text-white hover:border-transparent smooth-transition group"
             >
@@ -118,7 +146,7 @@ const ResultsView: React.FC = () => {
         <div className="relative overflow-hidden rounded-xl bg-black/5 dark:bg-white/5 border border-[var(--border-color)] group">
           {viewMode === 'raw' ? (
             <pre className="p-4 text-sm font-mono overflow-x-auto text-[var(--accent-color)] dark:text-[#61dafb]">
-              <code>{JSON.stringify(dummyData, null, 2)}</code>
+              <code>{JSON.stringify(paginatedData, null, 2)}</code>
             </pre>
           ) : (
             <div className="overflow-x-auto">
@@ -133,11 +161,10 @@ const ResultsView: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {dummyData.map((row, i) => (
-                    <motion.tr
+                  {paginatedData.map((row, i) => (
+                    <tr
                       key={i}
-                      whileHover={{ backgroundColor: "rgba(0,0,0,0.02)" }}
-                      className="border-b border-[var(--border-color)] last:border-0 dark:hover:bg-white/5 smooth-transition"
+                      className="border-b border-[var(--border-color)] last:border-0 hover:bg-black/5 dark:hover:bg-white/5 smooth-transition"
                     >
                       {Object.entries(row).map(([key, val], j) => (
                         <td key={j} className={`p-3 text-sm ${key !== 'id' ? 'min-w-[200px] max-w-xs align-top' : ''}`}>
@@ -150,13 +177,37 @@ const ResultsView: React.FC = () => {
                           )}
                         </td>
                       ))}
-                    </motion.tr>
+                    </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
         </div>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 text-sm">
+            <span className="opacity-60">
+              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, dummyData.length)} of {dummyData.length} entries
+            </span>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 rounded-lg bg-black/5 dark:bg-white/5 border border-[var(--border-color)] hover:bg-black/10 dark:hover:bg-white/10 disabled:opacity-50 smooth-transition"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 rounded-lg bg-black/5 dark:bg-white/5 border border-[var(--border-color)] hover:bg-black/10 dark:hover:bg-white/10 disabled:opacity-50 smooth-transition"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </SpotlightCard>
     </motion.div>
   );
