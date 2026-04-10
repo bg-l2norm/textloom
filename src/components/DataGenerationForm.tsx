@@ -9,6 +9,10 @@ const DataGenerationForm: React.FC = () => {
   const [pipelineStrategy, setPipelineStrategy] = useState<'standard' | 'hierarchical'>('hierarchical');
   const [rowCount, setRowCount] = useState(1000);
 
+  const [promptInstruction, setPromptInstruction] = useState('');
+  const [jsonSchema, setJsonSchema] = useState('');
+  const [maxTokens, setMaxTokens] = useState(2048);
+
   const [recursiveCategorization, setRecursiveCategorization] = useState(true);
   const [curatorStudent, setCuratorStudent] = useState(true);
   const [diversityLoss, setDiversityLoss] = useState(true);
@@ -18,7 +22,13 @@ const DataGenerationForm: React.FC = () => {
   const [hfDatasetUrl, setHfDatasetUrl] = useState('');
   const [isDatasetLinked, setIsDatasetLinked] = useState(false);
   const [datasetScenario, setDatasetScenario] = useState('Read columns: input, output. Generate 100 new synthetic variations maintaining the same tone but switching to a sci-fi context. Reverse prompt from output if input is missing.');
-  const [orchestratorMemory, setOrchestratorMemory] = useState('- Current objective: Expanding math reasoning dataset.\n- Rule: Avoid repetitive phrasing in outputs.\n- Node mapping: Column \'question\' -> Node [Student Gen]\n- Auto-correction active: If output fails validation, retry with temperature 0.2');
+
+  const [activeRole, setActiveRole] = useState<'orchestrator' | 'curator' | 'student'>('orchestrator');
+  const [roleMemories, setRoleMemories] = useState({
+    orchestrator: '- Current objective: Expanding math reasoning dataset.\n- Rule: Avoid repetitive phrasing in outputs.\n- Node mapping: Column \'question\' -> Node [Student Gen]\n- Auto-correction active: If output fails validation, retry with temperature 0.2',
+    curator: '',
+    student: ''
+  });
 
   const [isLoadingDataset, setIsLoadingDataset] = useState(false);
   const [datasetError, setDatasetError] = useState('');
@@ -71,11 +81,9 @@ const DataGenerationForm: React.FC = () => {
       setIsDatasetLinked(true);
     } catch (err: unknown) {
       console.error("Dataset linking error:", err);
-      if (err instanceof Error) {
-        setDatasetError(err.message || 'Failed to link dataset');
-      } else {
-        setDatasetError('Failed to link dataset');
-      }
+      setDatasetError((err instanceof Error ? err.message : 'Failed to link dataset') + ' - Falling back to manual mapping.');
+      setDatasetScenario('Unable to automatically fetch columns.\n\nInstructions:\n1. Manually map your dataset columns here.\n2. Provide specific generation rules.');
+      setIsDatasetLinked(true);
     } finally {
       setIsLoadingDataset(false);
     }
@@ -96,6 +104,8 @@ const DataGenerationForm: React.FC = () => {
             <textarea
               className="w-full h-32 p-4 rounded-xl bg-black/5 dark:bg-white/5 border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] smooth-transition resize-none placeholder-opacity-50"
               placeholder="E.g., Generate a list of 10 fictional user profiles with names, emails, and job titles..."
+              value={promptInstruction}
+              onChange={(e) => setPromptInstruction(e.target.value)}
             ></textarea>
           </div>
 
@@ -105,6 +115,8 @@ const DataGenerationForm: React.FC = () => {
               <textarea
                 className="relative w-full h-48 p-4 rounded-xl bg-black/5 dark:bg-white/5 border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] font-mono text-sm smooth-transition resize-none"
                 placeholder={`{\n  "type": "object",\n  "properties": {\n    "name": { "type": "string" }\n  }\n}`}
+                value={jsonSchema}
+                onChange={(e) => setJsonSchema(e.target.value)}
               ></textarea>
             </div>
           </div>
@@ -301,12 +313,13 @@ const DataGenerationForm: React.FC = () => {
                 <div>
                   <div className="flex justify-between text-xs mb-1">
                     <span className="opacity-70">Max Tokens</span>
-                    <span className="font-mono">2048</span>
+                    <span className="font-mono">{maxTokens}</span>
                   </div>
                   <input
                     type="range"
                     min="100" max="8000" step="100"
-                    defaultValue="2048"
+                    value={maxTokens}
+                    onChange={(e) => setMaxTokens(parseInt(e.target.value))}
                     className="w-full h-1.5 bg-black/10 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--accent-color)]"
                   />
                 </div>
@@ -327,18 +340,27 @@ const DataGenerationForm: React.FC = () => {
             <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-[var(--border-color)]">
               <h4 className="text-xs font-semibold opacity-70 mb-3 uppercase tracking-wider">Dynamic Hierarchy</h4>
               <div className="space-y-2">
-                <div className="flex items-center space-x-2 text-sm">
+                <div
+                  onClick={() => setActiveRole('orchestrator')}
+                  className={`flex items-center space-x-2 text-sm p-1.5 rounded-lg cursor-pointer smooth-transition ${activeRole === 'orchestrator' ? 'bg-black/10 dark:bg-white/10 shadow-sm ring-1 ring-[var(--accent-color)]/50' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
+                >
                   <Brain size={14} className="text-[var(--accent-color)]" />
                   <span className="font-medium">Orchestrator</span>
                   <span className="text-[10px] opacity-60">(Reads rules, routes tasks)</span>
                 </div>
-                <div className="pl-5 border-l border-black/10 dark:border-white/10 space-y-2 relative">
+                <div className="pl-5 border-l border-black/10 dark:border-white/10 space-y-2 relative ml-2">
                   <div className="absolute top-0 -left-[1px] w-[1px] h-3 bg-black/20 dark:bg-white/20"></div>
-                  <div className="flex items-center space-x-2 text-sm">
+                  <div
+                    onClick={() => setActiveRole('curator')}
+                    className={`flex items-center space-x-2 text-sm p-1.5 rounded-lg cursor-pointer smooth-transition ${activeRole === 'curator' ? 'bg-black/10 dark:bg-white/10 shadow-sm ring-1 ring-green-500/50' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
+                  >
                     <ShieldCheck size={14} className="text-green-500" />
                     <span>Curator Node</span>
                   </div>
-                  <div className="flex items-center space-x-2 text-sm">
+                  <div
+                    onClick={() => setActiveRole('student')}
+                    className={`flex items-center space-x-2 text-sm p-1.5 rounded-lg cursor-pointer smooth-transition ${activeRole === 'student' ? 'bg-black/10 dark:bg-white/10 shadow-sm ring-1 ring-blue-500/50' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
+                  >
                     <Users size={14} className="text-blue-500" />
                     <span>Student / Gen Node</span>
                   </div>
@@ -348,21 +370,30 @@ const DataGenerationForm: React.FC = () => {
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium opacity-80">Orchestrator Memory</label>
+                <label className="text-sm font-medium opacity-80">{activeRole.charAt(0).toUpperCase() + activeRole.slice(1)} Memory</label>
                 <div className="flex space-x-1">
                   <button className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded smooth-transition" title="Save Memory State">
                     <Save size={12} className="opacity-70" />
                   </button>
-                  <button className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded smooth-transition" title="Reset Memory">
+                  <button
+                    onClick={() => setRoleMemories(prev => ({
+                      ...prev,
+                      [activeRole]: activeRole === 'orchestrator'
+                        ? '- Current objective: Expanding math reasoning dataset.\n- Rule: Avoid repetitive phrasing in outputs.\n- Node mapping: Column \'question\' -> Node [Student Gen]\n- Auto-correction active: If output fails validation, retry with temperature 0.2'
+                        : ''
+                    }))}
+                    className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded smooth-transition"
+                    title="Reset Memory"
+                  >
                     <RefreshCw size={12} className="opacity-70" />
                   </button>
                 </div>
               </div>
               <textarea
-                value={orchestratorMemory}
-                onChange={(e) => setOrchestratorMemory(e.target.value)}
+                value={roleMemories[activeRole]}
+                onChange={(e) => setRoleMemories(prev => ({ ...prev, [activeRole]: e.target.value }))}
                 className="w-full h-32 p-3 rounded-xl bg-[var(--bg-color)] border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] smooth-transition resize-y text-xs font-mono opacity-90 leading-relaxed"
-                placeholder="Memory area for the Orchestrator to store rules, state, and corrections..."
+                placeholder={`Memory area for the ${activeRole.charAt(0).toUpperCase() + activeRole.slice(1)} to store rules, state, and corrections...`}
               ></textarea>
               <p className="text-[10px] opacity-50 mt-1">
                 This context is fluid and persists across generation batches. The LLM can edit this to self-correct.
