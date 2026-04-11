@@ -18,6 +18,12 @@ const DataGenerationForm: React.FC = () => {
   const [diversityLoss, setDiversityLoss] = useState(true);
   const [closedFeedback, setClosedFeedback] = useState(true);
 
+  // Advanced Frontier Heuristics
+  const [evolInstruct, setEvolInstruct] = useState(false);
+  const [magpieGen, setMagpieGen] = useState(false);
+  const [autoCriticRlaif, setAutoCriticRlaif] = useState(false);
+  const [ktoDpo, setKtoDpo] = useState(false);
+
   // New state variables for HF integration and roles/memory
   const [hfDatasetUrl, setHfDatasetUrl] = useState('');
   const [isDatasetLinked, setIsDatasetLinked] = useState(false);
@@ -97,6 +103,61 @@ const DataGenerationForm: React.FC = () => {
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
       {/* Main Form Area */}
       <div className="xl:col-span-2 space-y-6">
+        {/* Visual DAG Mock */}
+        {pipelineStrategy === 'hierarchical' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.14, type: "spring", stiffness: 400, damping: 40 }}
+          >
+            <SpotlightCard className="p-6 rounded-2xl">
+              <div className="flex items-center space-x-2 mb-4">
+                <Network size={18} className="text-[var(--accent-color)]" />
+                <h3 className="font-semibold">Execution DAG (Multi-Agent Flow)</h3>
+              </div>
+              <div className="relative w-full h-48 bg-black/5 dark:bg-white/5 rounded-xl border border-[var(--border-color)] overflow-hidden flex items-center justify-center">
+                {/* Connections */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
+                  <path d="M 150 96 C 250 96, 250 48, 350 48" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" className="text-black/20 dark:text-white/20" />
+                  <path d="M 150 96 C 250 96, 250 144, 350 144" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" className="text-black/20 dark:text-white/20" />
+                  <path d="M 350 48 C 450 48, 450 96, 550 96" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-500/50" />
+                  <path d="M 350 144 C 450 144, 450 96, 550 96" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-500/50" />
+                  {curatorStudent && <path d="M 550 96 C 650 96, 650 96, 750 96" fill="none" stroke="currentColor" strokeWidth="2" className="text-green-500/50" />}
+                  {autoCriticRlaif && <path d="M 750 96 C 750 20, 550 20, 550 96" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4" className="text-red-500/50" />}
+                </svg>
+
+                {/* Nodes */}
+                <div className="absolute flex flex-col items-center justify-center space-y-1" style={{ left: '100px', top: '50%', transform: 'translate(-50%, -50%)', zIndex: 10 }}>
+                  <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500 flex items-center justify-center shadow-lg"><Brain size={18} className="text-purple-500" /></div>
+                  <span className="text-[10px] font-mono opacity-70">Orchestrator</span>
+                </div>
+
+                <div className="absolute flex flex-col items-center justify-center space-y-1" style={{ left: '350px', top: '25%', transform: 'translate(-50%, -50%)', zIndex: 10 }}>
+                  <div className="w-10 h-10 rounded-xl bg-[var(--accent-color)]/20 border border-[var(--accent-color)] flex items-center justify-center shadow-lg"><Database size={18} className="text-[var(--accent-color)]" /></div>
+                  <span className="text-[10px] font-mono opacity-70">Sub-Task A</span>
+                </div>
+
+                <div className="absolute flex flex-col items-center justify-center space-y-1" style={{ left: '350px', top: '75%', transform: 'translate(-50%, -50%)', zIndex: 10 }}>
+                  <div className="w-10 h-10 rounded-xl bg-[var(--accent-color)]/20 border border-[var(--accent-color)] flex items-center justify-center shadow-lg"><Database size={18} className="text-[var(--accent-color)]" /></div>
+                  <span className="text-[10px] font-mono opacity-70">Sub-Task B</span>
+                </div>
+
+                <div className="absolute flex flex-col items-center justify-center space-y-1" style={{ left: '550px', top: '50%', transform: 'translate(-50%, -50%)', zIndex: 10 }}>
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500 flex items-center justify-center shadow-lg"><Users size={18} className="text-blue-500" /></div>
+                  <span className="text-[10px] font-mono opacity-70">Student Gen</span>
+                </div>
+
+                {curatorStudent && (
+                  <div className="absolute flex flex-col items-center justify-center space-y-1" style={{ left: '750px', top: '50%', transform: 'translate(-50%, -50%)', zIndex: 10 }}>
+                    <div className="w-10 h-10 rounded-xl bg-green-500/20 border border-green-500 flex items-center justify-center shadow-lg"><ShieldCheck size={18} className="text-green-500" /></div>
+                    <span className="text-[10px] font-mono opacity-70">Curator</span>
+                  </div>
+                )}
+              </div>
+            </SpotlightCard>
+          </motion.div>
+        )}
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -516,6 +577,64 @@ const DataGenerationForm: React.FC = () => {
                       <span className="text-sm font-medium block">Closed-Feedback Edit</span>
                     </div>
                     <span className="text-xs opacity-60">Autonomously edit prompt configs</span>
+                  </div>
+                </label>
+              </div>
+            )}
+
+            {/* Frontier Pipeline Heuristics */}
+            {pipelineStrategy === 'hierarchical' && (
+              <div className="pt-4 border-t border-[var(--border-color)] space-y-3">
+                <h4 className="text-[10px] font-bold opacity-70 uppercase tracking-wider mb-2 flex items-center">
+                  <Zap size={10} className="mr-1 text-purple-500" />
+                  Frontier AI Heuristics
+                </h4>
+
+                <label className="flex items-start space-x-3 cursor-pointer group">
+                  <div className="relative flex items-center justify-center mt-0.5">
+                    <input type="checkbox" checked={evolInstruct} onChange={(e) => setEvolInstruct(e.target.checked)} className="peer sr-only" />
+                    <div className="w-4 h-4 border border-purple-500/50 rounded bg-black/5 dark:bg-white/5 peer-checked:bg-purple-500 peer-checked:border-purple-500 smooth-transition"></div>
+                    <CheckIcon className={`absolute w-3 h-3 text-white pointer-events-none smooth-transition ${evolInstruct ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} />
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium block">Evol-Instruct</span>
+                    <span className="text-[10px] opacity-60">In-Depth & In-Breadth complexity evolution</span>
+                  </div>
+                </label>
+
+                <label className="flex items-start space-x-3 cursor-pointer group">
+                  <div className="relative flex items-center justify-center mt-0.5">
+                    <input type="checkbox" checked={magpieGen} onChange={(e) => setMagpieGen(e.target.checked)} className="peer sr-only" />
+                    <div className="w-4 h-4 border border-purple-500/50 rounded bg-black/5 dark:bg-white/5 peer-checked:bg-purple-500 peer-checked:border-purple-500 smooth-transition"></div>
+                    <CheckIcon className={`absolute w-3 h-3 text-white pointer-events-none smooth-transition ${magpieGen ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} />
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium block">Magpie Generation</span>
+                    <span className="text-[10px] opacity-60">Promptless auto-regressive generation</span>
+                  </div>
+                </label>
+
+                <label className="flex items-start space-x-3 cursor-pointer group">
+                  <div className="relative flex items-center justify-center mt-0.5">
+                    <input type="checkbox" checked={autoCriticRlaif} onChange={(e) => setAutoCriticRlaif(e.target.checked)} className="peer sr-only" />
+                    <div className="w-4 h-4 border border-purple-500/50 rounded bg-black/5 dark:bg-white/5 peer-checked:bg-purple-500 peer-checked:border-purple-500 smooth-transition"></div>
+                    <CheckIcon className={`absolute w-3 h-3 text-white pointer-events-none smooth-transition ${autoCriticRlaif ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} />
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium block">Auto-Critic (RLAIF)</span>
+                    <span className="text-[10px] opacity-60">Self-correction via reward modeling</span>
+                  </div>
+                </label>
+
+                <label className="flex items-start space-x-3 cursor-pointer group">
+                  <div className="relative flex items-center justify-center mt-0.5">
+                    <input type="checkbox" checked={ktoDpo} onChange={(e) => setKtoDpo(e.target.checked)} className="peer sr-only" />
+                    <div className="w-4 h-4 border border-purple-500/50 rounded bg-black/5 dark:bg-white/5 peer-checked:bg-purple-500 peer-checked:border-purple-500 smooth-transition"></div>
+                    <CheckIcon className={`absolute w-3 h-3 text-white pointer-events-none smooth-transition ${ktoDpo ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} />
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium block">KTO / DPO Pairing</span>
+                    <span className="text-[10px] opacity-60">Generate chosen/rejected pairwise samples</span>
                   </div>
                 </label>
               </div>

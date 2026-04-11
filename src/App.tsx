@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import DataGenerationForm from './components/DataGenerationForm';
 import ResultsView from './components/ResultsView';
 import UsageInsights from './components/UsageInsights';
+import DatasetInsights from './components/DatasetInsights';
 
 function App() {
   const [activeTab, setActiveTab] = useState('generate');
@@ -26,7 +27,7 @@ function App() {
       )}
       {/* Placeholders for other tabs */}
       {activeTab === 'datasets' && (
-        <div className="p-8 text-center opacity-50">Datasets content coming soon...</div>
+        <DatasetInsights />
       )}
       {activeTab === 'settings' && (
         <div className="p-8 text-center opacity-50">Settings content coming soon...</div>
