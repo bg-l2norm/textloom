@@ -11,7 +11,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange }) => {
   const navItems = [
     { id: 'generate', icon: <Layers size={20} />, label: 'Generate Data' },
-    { id: 'datasets', icon: <Database size={20} />, label: 'Datasets' },
+    { id: 'datasets', icon: <Database size={20} />, label: 'Dataset Insights' },
     { id: 'usage', icon: <Activity size={20} />, label: 'Usage Insights' },
     { id: 'settings', icon: <Settings size={20} />, label: 'Settings' },
   ];
