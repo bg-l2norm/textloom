@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sliders, Cpu, Zap, GitBranch, ShieldCheck, RefreshCw, Settings, Database, Cloud, Brain, Users, Network, Save } from 'lucide-react';
+import { Sliders, Cpu, Zap, GitBranch, ShieldCheck, RefreshCw, Settings, Database, Cloud, Brain, Users, Network, Save, Search } from 'lucide-react';
 import SpotlightCard from './SpotlightCard';
+import { getAllModelsWithIds } from 'llm-info';
 
 const DataGenerationForm: React.FC = () => {
-  const [modelType, setModelType] = useState<'local' | 'api'>('local');
+  const [provider, setProvider] = useState<string>('openrouter');
+  const [apiKey, setApiKey] = useState<string>('');
+  const [baseUrl, setBaseUrl] = useState<string>('');
+  const [availableModels, setAvailableModels] = useState<Array<{ id: string, name?: string }>>([]);
+  const [selectedModel, setSelectedModel] = useState<string>('');
+  const [isFetchingModels, setIsFetchingModels] = useState<boolean>(false);
+  const [fetchError, setFetchError] = useState<string>('');
+
   const [temperature, setTemperature] = useState(0.7);
   const [pipelineStrategy, setPipelineStrategy] = useState<'standard' | 'hierarchical'>('hierarchical');
   const [rowCount, setRowCount] = useState(1000);
@@ -42,6 +50,53 @@ const DataGenerationForm: React.FC = () => {
 
   const [isLoadingDataset, setIsLoadingDataset] = useState(false);
   const [datasetError, setDatasetError] = useState('');
+
+  const fetchModels = async () => {
+    setIsFetchingModels(true);
+    setFetchError('');
+    setAvailableModels([]);
+
+    try {
+      let modelsList: { id: string; name?: string }[] = [];
+
+      if (provider === 'openrouter') {
+        // Fetch dynamically from OpenRouter since it aggregates many models
+        const res = await fetch('https://openrouter.ai/api/v1/models');
+        if (!res.ok) throw new Error(`OpenRouter API error: ${res.status}`);
+        const data = await res.json();
+        modelsList = data.data.map((m: { id: string; name?: string }) => ({ id: m.id, name: m.name }));
+      } else if (provider === 'ollama') {
+        // Fetch from local Ollama instance
+        const url = baseUrl || 'http://localhost:11434';
+        const res = await fetch(`${url}/api/tags`);
+        if (!res.ok) throw new Error(`Ollama API error: ${res.status}`);
+        const data = await res.json();
+        modelsList = data.models.map((m: { name: string }) => ({ id: m.name, name: m.name }));
+      } else {
+        // Use llm-info for static list of known providers (openai, anthropic, google, etc)
+        const allModels = getAllModelsWithIds();
+        modelsList = allModels.filter((m) => m.provider === provider).map((m) => ({
+          id: m.id,
+          name: m.name
+        }));
+      }
+
+      setAvailableModels(modelsList);
+      if (modelsList.length > 0) {
+        setSelectedModel(modelsList[0].id);
+      } else {
+        setSelectedModel('');
+        if (provider !== 'openrouter' && provider !== 'ollama') {
+           setFetchError(`No models found for provider: ${provider} in local static list.`);
+        }
+      }
+    } catch (err: unknown) {
+      console.error("Error fetching models:", err);
+      setFetchError(err instanceof Error ? err.message : 'Failed to fetch models');
+    } finally {
+      setIsFetchingModels(false);
+    }
+  };
 
   const linkDataset = async () => {
     if (!hfDatasetUrl.trim()) return;
@@ -320,40 +375,89 @@ const DataGenerationForm: React.FC = () => {
           </div>
 
           <div className="space-y-6">
-            {/* Model Toggle */}
-            <div>
-              <div className="flex p-1 rounded-lg bg-black/5 dark:bg-white/5 border border-[var(--border-color)]">
-                <button
-                  onClick={() => setModelType('local')}
-                  className={`flex-1 py-1.5 text-sm font-medium rounded-md smooth-transition ${modelType === 'local' ? 'bg-white dark:bg-zinc-800 shadow-sm' : 'opacity-60 hover:opacity-100'}`}
+            {/* Provider and Auth */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium opacity-70 mb-1.5">Provider</label>
+                <select
+                  value={provider}
+                  onChange={(e) => {
+                    setProvider(e.target.value);
+                    setAvailableModels([]);
+                    setSelectedModel('');
+                    setFetchError('');
+                  }}
+                  className="w-full p-2.5 rounded-lg bg-black/5 dark:bg-white/5 border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-sm appearance-none cursor-pointer"
                 >
-                  Local
-                </button>
-                <button
-                  onClick={() => setModelType('api')}
-                  className={`flex-1 py-1.5 text-sm font-medium rounded-md smooth-transition ${modelType === 'api' ? 'bg-white dark:bg-zinc-800 shadow-sm' : 'opacity-60 hover:opacity-100'}`}
-                >
-                  API
-                </button>
+                  <option value="anthropic">Anthropic</option>
+                  <option value="cerebras">Cerebras</option>
+                  <option value="deepseek">DeepSeek</option>
+                  <option value="google">Google</option>
+                  <option value="groq">Groq</option>
+                  <option value="mistralai">MistralAI</option>
+                  <option value="ollama">Ollama</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="openrouter">OpenRouter</option>
+                  <option value="xai">xAI</option>
+                </select>
               </div>
+
+              <div>
+                <label className="block text-xs font-medium opacity-70 mb-1.5">API Key (Optional for Local)</label>
+                <input
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder="sk-..."
+                  className="w-full p-2.5 rounded-lg bg-black/5 dark:bg-white/5 border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-sm"
+                />
+              </div>
+
+              {provider === 'ollama' && (
+                <div>
+                  <label className="block text-xs font-medium opacity-70 mb-1.5">Base URL</label>
+                  <input
+                    type="text"
+                    value={baseUrl}
+                    onChange={(e) => setBaseUrl(e.target.value)}
+                    placeholder="http://localhost:11434"
+                    className="w-full p-2.5 rounded-lg bg-black/5 dark:bg-white/5 border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-sm"
+                  />
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={fetchModels}
+                disabled={isFetchingModels}
+                className={`w-full flex justify-center items-center space-x-2 py-2 rounded-lg text-sm font-medium smooth-transition ${isFetchingModels ? 'opacity-50 cursor-not-allowed bg-black/10 dark:bg-white/10' : 'bg-[var(--accent-color)]/10 hover:bg-[var(--accent-color)]/20 text-[var(--accent-color)]'}`}
+              >
+                <Search size={14} className={isFetchingModels ? "animate-spin" : ""} />
+                <span>{isFetchingModels ? 'Fetching...' : 'Fetch Models'}</span>
+              </button>
+
+              {fetchError && (
+                <p className="text-red-500 text-xs mt-1">{fetchError}</p>
+              )}
             </div>
 
             {/* Model Select */}
             <div>
               <label className="block text-xs font-medium opacity-70 mb-1.5">Select Model</label>
-              <select className="w-full p-2.5 rounded-lg bg-black/5 dark:bg-white/5 border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-sm appearance-none cursor-pointer">
-                {modelType === 'local' ? (
-                  <>
-                    <option>Llama 3 (8B)</option>
-                    <option>Mistral v0.2</option>
-                    <option>Phi-3 Mini</option>
-                  </>
+              <select
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className="w-full p-2.5 rounded-lg bg-black/5 dark:bg-white/5 border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-sm appearance-none cursor-pointer"
+                disabled={availableModels.length === 0}
+              >
+                {availableModels.length === 0 ? (
+                  <option value="">-- Fetch models first --</option>
                 ) : (
-                  <>
-                    <option>GPT-4o</option>
-                    <option>Claude 3.5 Sonnet</option>
-                    <option>Gemini 1.5 Pro</option>
-                  </>
+                  availableModels.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name || m.id}
+                    </option>
+                  ))
                 )}
               </select>
             </div>
